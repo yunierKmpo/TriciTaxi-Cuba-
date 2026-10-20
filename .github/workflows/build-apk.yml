@@ -1,0 +1,40 @@
+name: Build TriciTaxi APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tricitaxi_cuba_project.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Extract project
+        run: |
+          unzip -q tricitaxi_cuba_project.zip
+          cd tricitaxi_cuba
+          flutter create --platforms=android --org cu.tricitaxi --project-name tricitaxi_cuba .
+          flutter pub get
+          flutter build apk --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tricitaxi-cuba-apk
+          path: tricitaxi_cuba/build/app/outputs/flutter-apk/app-debug.apk
